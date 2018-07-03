@@ -40,7 +40,7 @@ class ExampleAsctivity : AppCompatActivity(), ShamsehMenu.Callback {
                 var shamsehMenu = ShamsehMenu(this);
 
                 val _24dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics);
-                shamsehMenu.show(root, (e.rawX).toInt(), (e.rawY).toInt(), (rect.width() / 1.5).toInt(), rect.height() / 2, null);
+                shamsehMenu.show(root, (e.rawX).toInt(), (e.rawY).toInt(), (rect.width() / 1.5).toInt(), rect.height() / 2, null, 0x55000000);
                 shamsehMenu.setCallbackListener(this)
             }
 
