@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="PopUpAnimation">
-        <item name="android:windowEnterAnimation">@anim/popup_window_open_anim</item>
-        <item name="android:windowExitAnimation">@anim/popup_window_close_anim</item>
+    <style name="ShamsehMenu_PopUpWindowAnimation">
+        <item name="android:windowEnterAnimation">@anim/shamseh_popup_window_open_anim</item>
+        <item name="android:windowExitAnimation">@anim/shamseh_popup_window_close_anim</item>
     </style>
 
 </resources>
