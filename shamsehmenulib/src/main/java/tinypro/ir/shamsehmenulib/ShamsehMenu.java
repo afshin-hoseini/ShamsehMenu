@@ -43,7 +43,7 @@ public class ShamsehMenu {
 
 // ____________________________________________________________________
 
-    public void show(View parent, int x, int y, int expandedWidth, int expandedHeight, @Nullable Rect boundTranslation) {
+    public void show(View parent, int x, int y, int expandedWidth, int expandedHeight, @Nullable Rect boundTranslation, int dimColor) {
 
         if(boundTranslation == null)
             boundTranslation = new Rect();
@@ -91,6 +91,8 @@ public class ShamsehMenu {
         popupWindow.setContentView(wrapperView);
         popupWindow.setInputMethodMode(PopupWindow.INPUT_METHOD_FROM_FOCUSABLE);
         popupWindow.setFocusable(true);
+        popupWindow.setBackgroundDrawable(new ColorDrawable(dimColor));
+        popupWindow.setAnimationStyle(R.style.PopUpAnimation);
 
 
         popupWindow.showAtLocation(parent, Gravity.TOP|Gravity.LEFT, parentScreenLocation[0], parentScreenLocation[1]);
@@ -117,6 +119,8 @@ public class ShamsehMenu {
 
         @Override
         public void onClosed() {
+
+
             popupWindow.dismiss();
         }
 
