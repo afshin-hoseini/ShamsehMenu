@@ -1,4 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+version = "1.0.0"
 
 android {
     compileSdkVersion 27
@@ -9,7 +13,7 @@ android {
         minSdkVersion 17
         targetSdkVersion 27
         versionCode 1
-        versionName "1.0"
+        versionName version
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -24,6 +28,47 @@ android {
 
 }
 
+def siteUrl = 'https://github.com/afshin-hoseini/ShamsehMenu'   // Homepage URL of the library
+def gitUrl = 'https://github.com/afshin-hoseini/ShamsehMenu.git'   // Git repository URL
+group = "ir.afshin.netup"
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+
+                // Add your description here
+                name 'ShamsehMenu'
+                url siteUrl
+
+                // Set your license
+                licenses {
+                    license {
+                        name 'The MIT Software License'
+                        url 'https://tldrlegal.com/license/mit-license'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'afshin-hoseini'
+                        name 'Afshin'
+                        email 'afshin.hoseini@gmail.com'
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+
+                }
+            }
+        }
+    }
+}
+
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
@@ -31,4 +76,44 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
+
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+    //options.encoding = 'UTF-8'
+}
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+bintray {
+
+    def jsonFile = file('../Keys/keys.json')
+    def jsKeys = new groovy.json.JsonSlurper().parseText(jsonFile.text)
+
+    user = jsKeys.bintray.user
+    key = jsKeys.bintray.apiKey
+
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = "ShamsehMenu"
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["MIT"]
+        publish = true
+    }
 }

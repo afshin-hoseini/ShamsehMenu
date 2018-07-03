@@ -5,11 +5,13 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.drawable.NinePatchDrawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.Size;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -63,21 +65,23 @@ public class ShamsehMenuView extends FrameLayout {
     }
     public enum MenuItemSpec {
 
-        facebook(R.drawable.ic_facebook, R.drawable.ic_facebook_box, Angle.North),
-        google(R.drawable.ic_google_plus, R.drawable.ic_google_plus_box, Angle.West),
-        twitter(R.drawable.ic_twitter, R.drawable.ic_twitter_box, Angle.South),
-        share(R.drawable.ic_share_variant, 0, Angle.East)
+        facebook(R.drawable.ic_facebook, R.drawable.ic_facebook_box, Angle.North, "Facebook"),
+        google(R.drawable.ic_google_plus, R.drawable.ic_google_plus_box, Angle.West, "Google Plus"),
+        twitter(R.drawable.ic_twitter, R.drawable.ic_twitter_box, Angle.South, "Twitter"),
+        share(R.drawable.ic_share_variant, 0, Angle.East, "")
         ;
 
         int buttonIcon;
         int headerIcon;
         Angle angle;
+        String title = "";
 
-        MenuItemSpec(int buttonIcon, int headerIcon, Angle angle) {
+        MenuItemSpec(int buttonIcon, int headerIcon, Angle angle, String title) {
 
             this.buttonIcon = buttonIcon;
             this.headerIcon = headerIcon;
             this.angle = angle;
+            this.title = title;
         }
     }
 
@@ -99,6 +103,10 @@ public class ShamsehMenuView extends FrameLayout {
 
     public Callback callbackListener = null;
     private boolean isExpanded = false;
+    private MenuItem selectedMenuItem = null;
+    private int expandedWidth = 0;
+    private int expandedHeight = 0;
+    FrameLayout expandedContenView = null;
 
 // ____________________________________________________________________
     public ShamsehMenuView(@NonNull Context context) {
@@ -137,36 +145,24 @@ public class ShamsehMenuView extends FrameLayout {
     }
 // ____________________________________________________________________
 
-    public void show() {
+    public void show(int expandedWidth, int expandedHeight) {
+
+
+        this.expandedWidth = expandedWidth;
+        this.expandedHeight = expandedHeight;
 
         BTN_TRANSLATE =  - TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, getContext().getResources().getDisplayMetrics());
         RADIUS_TRANSLATE = - TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 35, getContext().getResources().getDisplayMetrics());
         MENU_ITEM_SIZE = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 40, getContext().getResources().getDisplayMetrics());
 
         initShamsehCollapsedBkgImg();
+        initShamsehExpandedBkgImg();
 
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        radius = getLayoutParams().width/2;
+        initButtons();
+        initCloseBtn();
 
-            boolean initialized = false;
-
-            @Override
-            public void onGlobalLayout() {
-
-                if(initialized)
-                    return;
-                initialized = true;
-
-
-                radius = getLayoutParams().width/2;
-                initButtons();
-                initCloseBtn();
-
-                openAnimation();
-
-                initShamsehExpandedBkgImg();
-            }
-        });
-
+        openAnimation();
     }
 
 // ____________________________________________________________________
@@ -185,6 +181,14 @@ public class ShamsehMenuView extends FrameLayout {
         btn_close.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
         addView(btn_close);
+
+        btn_close.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                close();
+            }
+        });
     }
 
 // ____________________________________________________________________
@@ -257,11 +261,8 @@ public class ShamsehMenuView extends FrameLayout {
         LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         img_bkg_expanded.setLayoutParams(layoutParams);
 
-//        img_bkg_expanded.setBackgroundColor(0xffff0000);
         img_bkg_expanded.setImageResource(R.drawable.shamseh_expanded);
         img_bkg_expanded.setVisibility(INVISIBLE);
-
-//        img_bkg_expanded.setBackgroundResource(R.drawable.shamseh_expanded);
         img_bkg_expanded.setScaleType(ImageView.ScaleType.FIT_XY);
 
         this.addView(img_bkg_expanded);
@@ -286,7 +287,6 @@ public class ShamsehMenuView extends FrameLayout {
 
                 img_bkg_collapsed.setRotation(-degrees);
 
-
                 for(MenuItem menuItem : menuItems) {
 
                     float total_degrees = degrees + menuItem.getAngle().degree;
@@ -306,8 +306,23 @@ public class ShamsehMenuView extends FrameLayout {
 
                 expand();
             }
-        }, ROTATE_ANIM_DURATION);
+        }, (long) (ROTATE_ANIM_DURATION * .2));
 
+    }
+
+// ____________________________________________________________________
+
+    private void provideExpandedContentView(Rect paddingRect) {
+
+        expandedContenView = new FrameLayout(getContext());
+        FrameLayout.LayoutParams vlp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        vlp.setMargins(paddingRect.left, paddingRect.top + selectedMenuItem.getBottom(), paddingRect.right, paddingRect.bottom);
+        expandedContenView.setLayoutParams(vlp);
+
+        if(callbackListener != null)
+            expandedContenView.addView(callbackListener.contentViewFor(selectedMenuItem.spec, expandedContenView));
+
+        addView(expandedContenView);
     }
 
 // ____________________________________________________________________
@@ -315,27 +330,36 @@ public class ShamsehMenuView extends FrameLayout {
     private void expand() {
 
 
+        NinePatchDrawable expandedBkg = (NinePatchDrawable) ContextCompat.getDrawable(getContext(), R.drawable.shamseh_expanded);
+        final Rect paddingRect = new Rect();
+        expandedBkg.getPadding(paddingRect);
+
+        provideExpandedContentView(paddingRect);
+
         isExpanded = true;
         img_bkg_expanded.setAlpha(1f);
         img_bkg_expanded.setVisibility(VISIBLE);
 
         ViewGroup.LayoutParams lp = getLayoutParams();
-        final int minValue = lp.width;
-        final int maxValue = (int)((float)lp.width * 1.5);
+        final int startWidth = lp.width;
+        final int startHeight = lp.height;
 
-        ValueAnimator va = ValueAnimator.ofInt(minValue, maxValue);
+        ValueAnimator va = ValueAnimator.ofFloat(0, 1);
         va.setDuration(EXPAND_ANIM_DURATION);
         va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
 
-                int size = (int)valueAnimator.getAnimatedValue();
-                float alpha = ((float)size) / (float)maxValue;
+                float progress = (float)valueAnimator.getAnimatedValue();
                 LayoutParams layoutParams = (FrameLayout.LayoutParams) getLayoutParams();
 
-                img_bkg_expanded.setAlpha(alpha);
-                layoutParams.width = size;
-                layoutParams.height = size;
+                int width = (int)(startWidth + ((float)(expandedWidth - startWidth) * progress));
+                int height = (int)(startHeight + ((float)(expandedHeight - startHeight) * progress));
+
+                expandedContenView.setAlpha(progress);
+                img_bkg_expanded.setAlpha(progress);
+                layoutParams.width = width;
+                layoutParams.height = height;
 
                 if(layoutParams.leftMargin + layoutParams.width > ((View)getParent()).getWidth())
                     layoutParams.leftMargin -= (layoutParams.leftMargin + layoutParams.width - ((View)getParent()).getWidth());
@@ -344,7 +368,10 @@ public class ShamsehMenuView extends FrameLayout {
                     layoutParams.topMargin -= (layoutParams.topMargin + layoutParams.height - ((View)getParent()).getHeight());
 
                 if(callbackListener != null)
-                    callbackListener.onSizeChanged(size, size);
+                    callbackListener.onSizeChanged(width, height);
+
+                for(MenuItem menuItem : menuItems)
+                    menuItem.setAlpha(1 - progress);
 
                 requestLayout();
 
@@ -352,6 +379,14 @@ public class ShamsehMenuView extends FrameLayout {
         });
 
         va.start();
+
+        postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+                selectedMenuItem.expand(expandedWidth, paddingRect.right);
+            }
+        }, EXPAND_ANIM_DURATION);
 
     }
 
@@ -361,9 +396,20 @@ public class ShamsehMenuView extends FrameLayout {
         @Override
         public void onSelected(MenuItem menuItem, Angle angle) {
 
+            if(isExpanded)
+                return;
+
+            selectedMenuItem = menuItem;
             rotate(angle);
         }
-    }  ;
+
+        @Override
+        public void onShareButtonClicked(MenuItem menuItem) {
+
+            if(callbackListener != null)
+                callbackListener.onShareButtonClicked(menuItem.spec, expandedContenView.getChildAt(0));
+        }
+    };
 
 // ____________________________________________________________________
 
@@ -371,6 +417,8 @@ public class ShamsehMenuView extends FrameLayout {
 
         void onSizeChanged(int width, int height);
         void onClosed();
+        View contentViewFor(MenuItemSpec menuItemSpec, ViewGroup parent);
+        void onShareButtonClicked(MenuItemSpec spec, View contentView);
     }
 
 // ____________________________________________________________________

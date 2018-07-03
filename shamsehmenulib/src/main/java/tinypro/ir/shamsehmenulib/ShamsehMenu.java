@@ -1,18 +1,30 @@
 package tinypro.ir.shamsehmenulib;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
+import android.view.Display;
 import android.view.Gravity;
+import android.view.KeyCharacterMap;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.PopupWindow;
 
 public class ShamsehMenu {
 
-    PopupWindow popupWindow = null;
-    Context context;
+    private PopupWindow popupWindow = null;
+    private Context context;
+    private Callback callbackListener = null;
 
 // ____________________________________________________________________
 
@@ -24,8 +36,20 @@ public class ShamsehMenu {
 
 // ____________________________________________________________________
 
-    public void show(View parent, int x, int y) {
+    public void setCallbackListener(Callback callbackListener) {
 
+        this.callbackListener = callbackListener;
+    }
+
+// ____________________________________________________________________
+
+    public void show(View parent, int x, int y, int expandedWidth, int expandedHeight, @Nullable Rect boundTranslation) {
+
+        if(boundTranslation == null)
+            boundTranslation = new Rect();
+
+        int[] parentScreenLocation = new int[2];
+        parent.getLocationOnScreen(parentScreenLocation);
 
         //Sizes the shamseh menu view
         int size = ContextCompat.getDrawable(context, R.drawable.shamseh_collapsed).getIntrinsicWidth();
@@ -33,24 +57,26 @@ public class ShamsehMenu {
 
         final ShamsehMenuView shamsehMenuView = new ShamsehMenuView(context);
         shamsehMenuView.setLayoutParams(layoutParams);
-        shamsehMenuView.callbackListener = callbackListener;
-//        shamsehMenuView.setBackgroundColor(0xffff0000);
+        shamsehMenuView.callbackListener = shamsehView_callbackListener;
+
+        expandedHeight = Math.max(expandedHeight, (int)(size * 1.5));
+        expandedWidth = Math.max(expandedWidth, (int)(size * 1.5));
 
 
         //We want to position the center of menu on given x,y coordinates
-        float xPos = x - size / 2;
-        float yPos = y - size /2;
+        float xPos = (x - size / 2) - parentScreenLocation[0];
+        float yPos = (y - size /2) - parentScreenLocation[1];
 
         //Then we care about the edges of parent view
         if(xPos < 0)
             xPos = 0;
         if(xPos + size > parent.getWidth())
-            xPos -= (xPos + size) - parent.getWidth();
+            xPos -= (xPos + size) - parent.getWidth() - boundTranslation.right;
 
         if(yPos < 0)
             yPos = 0;
         if(yPos + size > parent.getHeight())
-            yPos -= (yPos + size) - parent.getHeight();
+            yPos -= (yPos + size) - parent.getHeight() - boundTranslation.bottom;
 
 
         layoutParams.topMargin = (int)yPos;
@@ -60,14 +86,16 @@ public class ShamsehMenu {
         ViewGroup wrapperView = new FrameLayout(context);
         wrapperView.addView(shamsehMenuView);
 
-        popupWindow = new PopupWindow(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-//        popupWindow.setBackgroundDrawable(new ColorDrawable(0xff00ff00));
+        popupWindow = new PopupWindow(parent.getWidth(), parent.getHeight());
 
         popupWindow.setContentView(wrapperView);
+        popupWindow.setInputMethodMode(PopupWindow.INPUT_METHOD_FROM_FOCUSABLE);
+        popupWindow.setFocusable(true);
 
-        popupWindow.showAtLocation(parent, Gravity.TOP|Gravity.LEFT, 0, 0);
 
-        shamsehMenuView.show();
+        popupWindow.showAtLocation(parent, Gravity.TOP|Gravity.LEFT, parentScreenLocation[0], parentScreenLocation[1]);
+
+        shamsehMenuView.show(expandedWidth, expandedHeight);
 
         wrapperView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,7 +108,7 @@ public class ShamsehMenu {
 
 // ____________________________________________________________________
 
-    ShamsehMenuView.Callback callbackListener = new ShamsehMenuView.Callback() {
+    ShamsehMenuView.Callback shamsehView_callbackListener = new ShamsehMenuView.Callback() {
         @Override
         public void onSizeChanged(int width, int height) {
 
@@ -91,7 +119,29 @@ public class ShamsehMenu {
         public void onClosed() {
             popupWindow.dismiss();
         }
+
+        @Override
+        public View contentViewFor(ShamsehMenuView.MenuItemSpec menuItemSpec, ViewGroup parent) {
+
+            if(callbackListener != null)
+                return callbackListener.contentViewFor(menuItemSpec, parent);
+            return null;
+        }
+
+        @Override
+        public void onShareButtonClicked(ShamsehMenuView.MenuItemSpec spec, View contentView) {
+
+            if(callbackListener != null)
+                callbackListener.onShareButtonClicked(spec, contentView);
+        }
     };
+// ____________________________________________________________________
+
+    public interface Callback {
+
+        View contentViewFor(ShamsehMenuView.MenuItemSpec menuItemSpec, ViewGroup parent);
+        void onShareButtonClicked(ShamsehMenuView.MenuItemSpec spec, View contentView);
+    }
 
 // ____________________________________________________________________
 }
