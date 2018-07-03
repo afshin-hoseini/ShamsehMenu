@@ -20,7 +20,7 @@ class ExampleAsctivity : AppCompatActivity(), ShamsehMenu.Callback {
 
     override fun contentViewFor(menuItemSpec: ShamsehMenuView.MenuItemSpec?, parent: ViewGroup?): View {
 
-        return LayoutInflater.from(this).inflate(R.layout.menu_content, parent, false);
+        return LayoutInflater.from(this).inflate(R.layout.shamseh_menu_content, parent, false);
     }
 
     override fun onShareButtonClicked(spec: ShamsehMenuView.MenuItemSpec?, contentView: View?) {
