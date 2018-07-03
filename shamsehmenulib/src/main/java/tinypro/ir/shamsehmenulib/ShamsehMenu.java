@@ -100,7 +100,7 @@ public class ShamsehMenu {
         popupWindow.setInputMethodMode(PopupWindow.INPUT_METHOD_FROM_FOCUSABLE);
         popupWindow.setFocusable(true);
         popupWindow.setBackgroundDrawable(new ColorDrawable(dimColor));
-        popupWindow.setAnimationStyle(R.style.PopUpAnimation);
+        popupWindow.setAnimationStyle(R.style.ShamsehMenu_PopUpWindowAnimation);
 
 
         popupWindow.showAtLocation(parent, Gravity.TOP|Gravity.LEFT, parentScreenLocation[0], parentScreenLocation[1]);

@@ -10,17 +10,13 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.util.Size;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -181,7 +177,7 @@ public class ShamsehMenuView extends FrameLayout {
         btn_close = new ImageButton(getContext());
         LayoutParams layoutParams = new LayoutParams((int)MENU_ITEM_SIZE, (int)MENU_ITEM_SIZE);
         btn_close.setLayoutParams(layoutParams);
-        btn_close.setImageResource(R.drawable.ic_cross);
+        btn_close.setImageResource(R.drawable.ic_golden_cross);
         btn_close.setBackground(null);
 
         ViewGroup.LayoutParams lp = getLayoutParams();
@@ -219,14 +215,14 @@ public class ShamsehMenuView extends FrameLayout {
 
     private void openAnimation() {
 
-        this.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.menu_open));
+        this.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.shamseh_menu_open));
     }
 
 // ____________________________________________________________________
 
     private void closeAnimation() {
 
-        Animation animation = AnimationUtils.loadAnimation(getContext(), isExpanded ? R.anim.menu_close_expanded : R.anim.menu_close);
+        Animation animation = AnimationUtils.loadAnimation(getContext(), isExpanded ? R.anim.shamseh_menu_close_expanded : R.anim.shamseh_menu_close);
         animation.setFillAfter(true);
         this.startAnimation(animation);
         postDelayed(new Runnable() {
