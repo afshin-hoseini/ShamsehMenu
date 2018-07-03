@@ -139,6 +139,15 @@ public class ShamsehMenuView extends FrameLayout {
 
 // ____________________________________________________________________
 
+    public void release() {
+
+        img_bkg_collapsed = null;
+        img_bkg_expanded = null;
+        expandedContenView = null;
+        callbackListener = null;
+    }
+// ____________________________________________________________________
+
     public void close() {
 
         closeAnimation();

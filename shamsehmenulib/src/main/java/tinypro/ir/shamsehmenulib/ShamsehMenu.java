@@ -25,6 +25,7 @@ public class ShamsehMenu {
     private PopupWindow popupWindow = null;
     private Context context;
     private Callback callbackListener = null;
+    private ShamsehMenuView shamsehMenuView = null;
 
 // ____________________________________________________________________
 
@@ -43,6 +44,13 @@ public class ShamsehMenu {
 
 // ____________________________________________________________________
 
+    public void close() {
+
+        shamsehMenuView.close();
+    }
+
+// ____________________________________________________________________
+
     public void show(View parent, int x, int y, int expandedWidth, int expandedHeight, @Nullable Rect boundTranslation, int dimColor) {
 
         if(boundTranslation == null)
@@ -55,7 +63,7 @@ public class ShamsehMenu {
         int size = ContextCompat.getDrawable(context, R.drawable.shamseh_collapsed).getIntrinsicWidth();
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(size, size);
 
-        final ShamsehMenuView shamsehMenuView = new ShamsehMenuView(context);
+        shamsehMenuView = new ShamsehMenuView(context);
         shamsehMenuView.setLayoutParams(layoutParams);
         shamsehMenuView.callbackListener = shamsehView_callbackListener;
 
@@ -112,15 +120,13 @@ public class ShamsehMenu {
 
     ShamsehMenuView.Callback shamsehView_callbackListener = new ShamsehMenuView.Callback() {
         @Override
-        public void onSizeChanged(int width, int height) {
-
-//            popupWindow.update(width, height);
-        }
+        public void onSizeChanged(int width, int height) {}
 
         @Override
         public void onClosed() {
 
-
+            shamsehMenuView.release();
+            shamsehMenuView = null;
             popupWindow.dismiss();
         }
 
